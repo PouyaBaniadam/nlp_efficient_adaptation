@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="fa" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <title>LLM PEFT Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="res/css/styles.css">
+</head>
+<body class="impress-not-supported">
+
+    <div class="orb-container">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    
+    <canvas id="matrix-canvas" class="dynamic-hue"></canvas>
+    <div class="noise-overlay"></div>
+
+    <div class="neo-status-bar">
+        <div class="progress-text dynamic-text">SLIDE: <span id="current-num">1</span> / <span id="total-num">1</span></div>
+        <div class="progress-track">
+            <div class="progress-fill dynamic-bg"></div>
+        </div>
+    </div>
+
+    <div id="impress" data-transition-duration="2000" data-width="1300" data-height="750">
+
+        <div id="start" class="step" data-x="0" data-y="0" data-scale="2">
+            <div class="rgb-card">
+                <div class="content-box">
+                    <div class="logo-area dynamic-hue">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="2" fill="none" />
+                            <circle cx="50" cy="50" r="20" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <h1 class="dynamic-text">تطبیق کارآمد مدل‌های زبانی</h1>
+                    <p>بررسی روش‌های PEFT و LoRA</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="slide1" class="step" data-x="1500" data-y="0" data-z="0" data-rotate-y="30">
+            <div class="rgb-card">
+                <h2>مقدمه: عصر مدل‌های زبانی بزرگ</h2>
+                <ul>
+                    <li>ظهور مدل‌های بنیادین (Foundation Models) و تغییر پارادایم در هوش مصنوعی.</li>
+                    <li>قانون مقیاس‌پذیری: رابطه مستقیم پارامترها و قابلیت‌های نوظهور.</li>
+                    <li>چالش اصلی: انتقال مدل‌های عمومی به کاربردهای تخصصی.</li>
+                    <li>هدف ارائه: بررسی روش‌های تطبیق مدل با کمترین هزینه محاسباتی.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide2" class="step" data-x="1500" data-y="1000" data-z="-1000" data-rotate-y="90">
+            <div class="rgb-card">
+                <h2>چرخه حیات مدل‌های زبانی (LLM Lifecycle)</h2>
+                <ul>
+                    <li>مرحله ۱: پیش‌آموزش روی حجم عظیم داده (تريلیون‌ها توکن).</li>
+                    <li>مرحله ۲: تنظیم دستورالعمل برای پیروی از فرامین.</li>
+                    <li>مرحله ۳: همسوسازی با ترجیحات انسانی (RLHF/DPO).</li>
+                    <li>مرحله ۴: تطبیق تخصصی که موضوع بحث ماست.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide3" class="step" data-x="0" data-y="1500" data-z="-2000" data-rotate-x="60">
+            <div class="rgb-card">
+                <h2>چالش تنظیم دقیق کامل (Full Fine-Tuning)</h2>
+                <ul>
+                    <li>تعریف: به‌روزرسانی تمام وزن‌های شبکه.</li>
+                    <li>مشکل حافظه: نیاز به ذخیره وضعیت‌های بهینه‌ساز و گرادیان‌ها.</li>
+                    <li>هزینه: برای مدل ۷ میلیاردی، بیش از ۱۰۰ گیگابایت VRAM نیاز است.</li>
+                    <li>غیرممکن بودن برای اکثر کاربران با سخت‌افزارهای تجاری.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide4" class="step" data-x="-1500" data-y="1000" data-z="-1000" data-rotate-y="-90">
+            <div class="rgb-card">
+                <h2>مشکل فراموشی فاجعه‌بار (Catastrophic Forgetting)</h2>
+                <ul>
+                    <li>پدیده: یادگیری اطلاعات جدید منجر به حذف دانش قبلی می‌شود.</li>
+                    <li>علت: تغییرات گسترده در وزن‌ها که نمایش‌های عمومی را تخریب می‌کند.</li>
+                    <li>مثال: مدلی که برای پزشکی تنظیم می‌شود، توانایی کدنویسی را از دست می‌دهد.</li>
+                    <li>نیاز به حفظ دانش اصلی مدل (Pre-trained Knowledge).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide5" class="step" data-x="-1500" data-y="0" data-z="0" data-rotate-y="-30">
+            <div class="rgb-card">
+                <h2>راهکار: تنظیم دقیق کارآمد پارامتر (PEFT)</h2>
+                <ul>
+                    <li>تعریف PEFT: به‌روزرسانی تنها بخش کوچکی از پارامترها (کمتر از ۱٪).</li>
+                    <li>مزیت ۱: کاهش شدید نیاز به حافظه GPU.</li>
+                    <li>مزیت ۲: جلوگیری از فراموشی فاجعه‌بار با فریز کردن مدل اصلی.</li>
+                    <li>مزیت ۳: قابلیت ذخیره‌سازی چندین آداپتور کوچک برای یک مدل پایه.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide6" class="step" data-x="0" data-y="-1200" data-z="-3000" data-rotate-x="-90">
+            <div class="rgb-card">
+                <h2>دسته‌بندی روش‌های PEFT (Taxonomy)</h2>
+                <ul>
+                    <li>۱. روش‌های انتخابی (Selective): انتخاب زیرمجموعه‌ای از وزن‌ها.</li>
+                    <li>۲. روش‌های افزودنی (Additive): اضافه کردن پارامترهای جدید (Adapters).</li>
+                    <li>۳. روش‌های بازآرایی (Reparameterization): تغییر ساختار ریاضی وزن‌ها (LoRA).</li>
+                    <li>این دسته‌بندی مبنای نقشه راه ما خواهد بود.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide7" class="step" data-x="1500" data-y="-1200" data-z="-4000" data-rotate-y="-30">
+            <div class="rgb-card">
+                <h2>مفهوم Intrinsic Dimension (بعد ذاتی)</h2>
+                <ul>
+                    <li>نظریه: تغییرات لازم برای یک تسک در فضای برداری کوچکتری رخ می‌دهد.</li>
+                    <li>مقاله Aghajanyan (2020): یادگیری در زیرفضای با بعد پایین ممکن است.</li>
+                    <li>این مفهوم پایه و اساس روش‌هایی مثل LoRA است.</li>
+                    <li>نتیجه: می‌توان با پارامترهای کم به دقت مدل کامل رسید.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide8" class="step" data-x="1500" data-y="-2500" data-z="-5000" data-rotate-y="-90">
+            <div class="rgb-card">
+                <h2>معماری ترانسفورمر و نقاط تزریق PEFT</h2>
+                <ul>
+                    <li>ساختار: لایه‌های Attention و Feed-Forward Network.</li>
+                    <li>مکان‌های هدف: اکثر روش‌های PEFT ماژول‌های Attention را هدف قرار می‌دهند.</li>
+                    <li>اهمیت FFN: تحقیقات نشان می‌دهد این لایه‌ها حاوی دانش واقعی مدل هستند.</li>
+                    <li>استراتژی: انتخاب هوشمندانه لایه‌ها برای تزریق پارامتر.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide9" class="step" data-x="0" data-y="-3500" data-z="-6000" data-rotate-x="90">
+            <div class="rgb-card">
+                <h2>چالش‌های استنتاج (Inference Latency)</h2>
+                <ul>
+                    <li>مشکل آداپتورهای سری: اضافه کردن لایه‌ها باعث کندی استنتاج می‌شود.</li>
+                    <li>راهکار: ادغام وزن‌ها (Weight Merging) در زمان اجرا.</li>
+                    <li>روش‌های مبتنی بر Prompt: بدون تغییر در ساختار مدل، فقط ورودی تغییر می‌کند.</li>
+                    <li>تعادل: انتخاب بین سرعت آموزش و سرعت پاسخ‌دهی.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide10" class="step" data-x="-1500" data-y="-2500" data-z="-5000" data-rotate-y="90">
+            <div class="rgb-card">
+                <h2>روش‌های افزودنی: Adapters (تاریخچه)</h2>
+                <ul>
+                    <li>اولین نسل PEFT (Houlsby et al., 2019).</li>
+                    <li>معماری: قرارگیری بعد از لایه‌های Attention و FFN.</li>
+                    <li>ساختار: Down-projection ➜ Nonlinearity ➜ Up-projection.</li>
+                    <li>نقد: افزایش طول مسیر محاسباتی (Inference Overhead).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide11" class="step" data-x="-3000" data-y="-3500" data-z="-7000" data-rotate-y="180">
+            <div class="rgb-card">
+                <h2>روش‌های مبتنی بر Prompt (Soft Prompts)</h2>
+                <ul>
+                    <li>ایده: به جای طراحی Prompt متنی، بردار Embedding بهینه را یاد بگیریم.</li>
+                    <li>Soft Prompt: توکن‌های آموزش‌پذیر که برای انسان قابل تفسیر نیستند.</li>
+                    <li>مزیت: مدل کاملاً فریز شده است.</li>
+                    <li>عیب: محدودیت در طول توکن‌های ورودی (Sequence Length).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide12" class="step" data-x="-4500" data-y="-2500" data-z="-8000" data-rotate-y="270">
+            <div class="rgb-card">
+                <h2>روش‌های انتخابی: BitFit</h2>
+                <ul>
+                    <li>ساده‌ترین روش PEFT.</li>
+                    <li>ایده: فقط پارامترهای Bias در شبکه آموزش داده شوند.</li>
+                    <li>تعداد پارامتر: کمتر از ۰.۱٪ کل شبکه.</li>
+                    <li>عملکرد: در تسک‌های ساده موثر، اما در تسک‌های پیچیده ضعیف است.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide13" class="step" data-x="-3000" data-y="-1000" data-z="-9000" data-rotate-x="90">
+            <div class="rgb-card">
+                <h2>پیش‌نیازهای ریاضی: تجزیه ماتریس (SVD)</h2>
+                <ul>
+                    <li>تجزیه مقادیر منفرد (Singular Value Decomposition).</li>
+                    <li>کاربرد: تقریب زدن یک ماتریس بزرگ با ضرب دو ماتریس کوچک.</li>
+                    <li>ریاضیات: W ≈ U Σ Vᵀ</li>
+                    <li>این مفهوم ریاضی، زیربنای اصلی روش LoRA است.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide14" class="step" data-x="-1500" data-y="0" data-z="-10000" data-rotate-x="180">
+            <div class="rgb-card">
+                <h2>اهمیت سخت‌افزار: Quantization</h2>
+                <ul>
+                    <li>کاهش دقت اعداد از FP32 به INT8 یا FP4 (۴ بیت).</li>
+                    <li>کاهش حجم: مدل LLaMA-65B از ۱۳۰ گیگابایت به ۴۰ گیگابایت می‌رسد.</li>
+                    <li>چالش: افت دقت محاسباتی.</li>
+                    <li>ترکیب PEFT + Quantization (QLoRA): راه حل نهایی دموکراسی AI.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide15" class="step" data-x="0" data-y="1500" data-z="-11000" data-scale="4" data-rotate-x="0">
+            <div class="rgb-card">
+                <h1 class="dynamic-text">پایان بخش اول</h1>
+                <h2>ورود به مباحث پیشرفته</h2>
+                <ul>
+                    <li>مسیر: بررسی عمیق Sparsity و Pruning.</li>
+                    <li>سپس: کالبدشکافی LoRA و خانواده آن (QLoRA, DoRA).</li>
+                    <li>هدف: درک دقیق معماری و ریاضیات پشت هر روش.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide16" class="step" data-x="2500" data-y="1500" data-z="-12000" data-rotate-y="45">
+            <div class="rgb-card">
+                <h2>مکانیسم و ریاضیات هرس کردن (Sparsity Mechanics)</h2>
+                <ul>
+                    <li>معرفی تنکی (Sparsity) به عنوان یک سوگیری استقرایی برای بهینه‌سازی مدل.</li>
+                    <li>معیار هرس: استفاده از بزرگی وزن (Weight Magnitude) برای تشخیص پارامترهای کم‌اهمیت.</li>
+                    <li>فرمول‌بندی ماسک باینری: f'<sub>θ</sub> = f<sub>θ ⊙ b + ϕ</sub> که در آن b ماسک باینری است.</li>
+                    <li>اشاره به Diff Pruning: یادگیری پارامتر پراکنده ϕ برای تطبیق دقیق.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide17" class="step" data-x="4000" data-y="2500" data-z="-13500" data-rotate-y="90">
+            <div class="rgb-card">
+                <h2>نظریه بلیت بخت‌آزمایی و انتقال یادگیری (LTH)</h2>
+                <ul>
+                    <li>فرضیه LTH: وجود زیرشبکه‌های برنده در مدل‌های تصادفی که به تنهایی کارآمدند.</li>
+                    <li>کارایی: امکان دستیابی به تنکی ۹۰٪ در مدل‌هایی نظیر BERT بدون افت کیفیت.</li>
+                    <li>مقایسه Magnitude Pruning (وزن‌های بزرگ) با Movement Pruning (وزن‌های متغیر).</li>
+                    <li>چرخه عملیاتی: آموزش، هرس، و بازآموزی (Iterative Pruning) برای تثبیت زیرشبکه.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide18" class="step" data-x="2500" data-y="4000" data-z="-15000" data-rotate-x="45">
+            <div class="rgb-card">
+                <h2>چالش تنظیم دقیق کامل و ایده LoRA</h2>
+                <ul>
+                    <li>چالش Full Fine-tuning: هزینه محاسباتی سرسام‌آور برای به‌روزرسانی تمام پارامترها.</li>
+                    <li>ایده محوری LoRA: فریز کردن مدل اصلی و تزریق ماتریس‌های آموزش‌پذیر بسیار کوچک.</li>
+                    <li>کاهش پارامترها: رمزگذاری تغییرات ΔΦ با پارامترهای Θ که |Θ| ≪ |Φ₀| است.</li>
+                    <li>هدف: حفظ عملکرد مدل بزرگ با کسری از هزینه حافظه و زمان.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide19" class="step" data-x="0" data-y="4500" data-z="-16500" data-rotate-x="90">
+            <div class="rgb-card">
+                <h2>معماری و کارایی LoRA (Implementation Mechanics)</h2>
+                <ul>
+                    <li>فرضیه رتبه پایین (Low Intrinsic Rank): وزن‌ها تغییرات زیادی ندارند.</li>
+                    <li>معماری تجزیه ماتریس: W₀ + αBA. فقط ماتریس‌های کوچک A و B آموزش می‌بینند.</li>
+                    <li>مقداردهی اولیه: B=0 و A تصادفی گوسی، برای اینکه تغییرات اولیه صفر باشد.</li>
+                    <li>بدون تأخیر استنتاج: امکان ادغام (Merge) ماتریس‌های BA در W₀ پس از آموزش.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide20" class="step" data-x="-2500" data-y="3500" data-z="-18000" data-rotate-y="-45">
+            <div class="rgb-card">
+                <h2>معرفی QLoRA: کوانتایزاسیون برای بهره‌وری حداکثری</h2>
+                <ul>
+                    <li>ترکیب Quantization و LoRA برای کاهش شدید حافظه مصرفی.</li>
+                    <li>نوع داده NF4 (4-bit NormalFloat): بهینه برای توزیع نرمال وزن‌های شبکه.</li>
+                    <li>بهینه‌ساز صفحه‌بندی شده (Paged Optimizer): مدیریت هوشمند حافظه برای جلوگیری از OOM.</li>
+                    <li>نتیجه: امکان آموزش مدل‌های چند ده میلیاردی روی سخت‌افزارهای محدود.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide21" class="step" data-x="-4500" data-y="2000" data-z="-20000" data-rotate-y="-90">
+            <div class="rgb-card">
+                <h2>روش Prefix-Tuning: پیشوندهای پیوسته</h2>
+                <ul>
+                    <li>ایده: افزودن بردارهای پیوسته (Virtual Tokens) به ابتدای ورودی لایه‌ها.</li>
+                    <li>منجمد بودن مدل: تمام پارامترهای مدل اصلی ثابت می‌مانند.</li>
+                    <li>مزیت سرویس‌دهی: مناسب برای سیستم‌های چندوظیفه‌ای با تعویض سریع پیشوندها.</li>
+                    <li>تفاوت با Prompt Engineering: این پیشوندها توسط گرادیان بهینه‌سازی می‌شوند.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide22" class="step" data-x="-3000" data-y="500" data-z="-22000" data-rotate-y="-120">
+            <div class="rgb-card">
+                <h2>روش Prompt-Tuning و اهمیت مقیاس مدل</h2>
+                <ul>
+                    <li>تعریف: یادگیری Soft Prompts که فقط به لایه ورودی اضافه می‌شوند.</li>
+                    <li>وابستگی به مقیاس: این روش در مدل‌های کوچک ضعیف عمل می‌کند.</li>
+                    <li>نقطه عطف: همگرایی با Fine-tuning در مدل‌های بزرگتر از 10<sup>10</sup> پارامتر.</li>
+                    <li>سادگی: کمترین میزان پارامتر قابل آموزش در بین تمام روش‌ها.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide23" class="step" data-x="0" data-y="-500" data-z="-24000" data-rotate-x="-30">
+            <div class="rgb-card">
+                <h2>معماری آداپتورها (Adapter Architecture)</h2>
+                <ul>
+                    <li>ساختار گلوگاهی: کاهش ابعاد ➜ تابع غیرخطی ➜ افزایش ابعاد.</li>
+                    <li>مکان جایگذاری: معمولاً پس از لایه‌های Feed-Forward یا Attention.</li>
+                    <li>فرمول: f'<sub>i</sub>(x) = f<sub>θi</sub>(x) ⊙ f<sub>ϕi</sub>(x).</li>
+                    <li>کارایی: عملکرد رقابتی با Fine-tuning کامل با پارامتر بسیار کمتر.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide24" class="step" data-x="3000" data-y="500" data-z="-26000" data-rotate-y="-30">
+            <div class="rgb-card">
+                <h2>دیدگاه یکپارچه (Unified View of PEFT)</h2>
+                <ul>
+                    <li>نظریه وحدت‌بخش (2022): تمام روش‌ها تغییر در نمایش پنهان هستند.</li>
+                    <li>Adapters: تابع افزودنی (Additive Function).</li>
+                    <li>Prefix Tuning: تغییر با Gating و افزودن به کلید/مقدار.</li>
+                    <li>LoRA: افزودن موازی با اسکیلینگ (Parallel Adaptation).</li>
+                    <li>نتیجه: تفاوت در پیاده‌سازی است، نه در منطق بنیادی.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide25" class="step" data-x="4500" data-y="2000" data-z="-28000" data-rotate-y="0">
+            <div class="rgb-card">
+                <h2>مطالعه موردی: تطبیق گویشی (Dialect Adaptation)</h2>
+                <ul>
+                    <li>چالش: عملکرد ضعیف روی گویش‌های غیر استاندارد.</li>
+                    <li>معماری ماژولار: استفاده ترکیبی از Task Adapter و Dialect Adapter.</li>
+                    <li>مزیت: یادگیری تفاوت‌های زبانی بدون فراموشی زبان اصلی.</li>
+                    <li>رویکرد Plug-and-Play: ترکیب ماژول‌ها برای سناریوهای جدید.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide26" class="step" data-x="3000" data-y="4000" data-z="-30000" data-rotate-y="30">
+            <div class="rgb-card">
+                <h2>اشتراک‌گذاری دانش: AdapterHub</h2>
+                <ul>
+                    <li>مفهوم: مخزن مرکزی برای اشتراک‌گذاری ماژول‌های آداپتور.</li>
+                    <li>مزیت زیرساختی: دانلود فایل‌های چند مگابایتی به جای مدل‌های چند گیگابایتی.</li>
+                    <li>کتابخانه adapters: ابزار استاندارد برای پیاده‌سازی و ترکیب آسان.</li>
+                    <li>دموکراتیزه کردن NLP: دسترسی راحت‌تر محققان به مدل‌های تخصصی.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide27" class="step" data-x="0" data-y="5000" data-z="-32000" data-rotate-x="70">
+            <div class="rgb-card">
+                <h2>مقایسه جامع عملکرد و پایداری</h2>
+                <ul>
+                    <li>تحلیل نمودار حبابی: رابطه بین دقت GLUE و تعداد پارامترها.</li>
+                    <li>برنده کارایی: LoRA و آداپتورها در پارامترهای کم پایدارترند.</li>
+                    <li>محدودیت Prompting: عملکرد ناپایدار در مدل‌های متوسط.</li>
+                    <li>نتیجه‌گیری: برای اکثر کاربردها، LoRA یا آداپتور انتخاب امن‌تری هستند.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide28" class="step" data-x="-3000" data-y="4000" data-z="-34000" data-rotate-y="-30">
+            <div class="rgb-card">
+                <h2>فراتر از PEFT: تقطیر دانش (Distillation)</h2>
+                <ul>
+                    <li>تغییر پارادایم: کوچک کردن مدل به جای آموزش کارآمد.</li>
+                    <li>معلم و دانش‌آموز: انتقال رفتار مدل بزرگ به مدل کوچک.</li>
+                    <li>هدف: کاهش تأخیر در زمان استنتاج (Inference Latency).</li>
+                    <li>مرزهای جدید: Gist Tokens و Representation Fine-Tuning.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide29" class="step" data-x="-5000" data-y="1500" data-z="-36000" data-rotate-y="-60">
+            <div class="rgb-card">
+                <h2>جمع‌بندی موقت: مسیر تکامل تا ۲۰۲۴</h2>
+                <ul>
+                    <li>مرور سفر: از Pruning و حذف وزن‌ها تا LoRA و تجزیه ماتریس‌ها.</li>
+                    <li>تنوع ابزارها: هر روش کاربرد خاص خود را دارد.</li>
+                    <li>پیام اصلی: PEFT هوش مصنوعی را در دسترس سخت‌افزارهای معمولی قرار داد.</li>
+                    <li>در ادامه: جدیدترین دستاوردهای ۲۰۲۴ (DoRA و LoRA+) را بررسی می‌کنیم.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide30" class="step" data-x="-3000" data-y="-1000" data-z="-38000" data-rotate-x="-90">
+            <div class="rgb-card">
+                <h2>معرفی DoRA: تجزیه وزن‌ها (2024)</h2>
+                <ul>
+                    <li>چکیده: روشی نوین برای پر کردن شکاف عملکردی با Fine-tuning کامل.</li>
+                    <li>مشکل LoRA: همبستگی اجباری بین بزرگی و جهت وزن‌ها.</li>
+                    <li>بینش کلیدی: در FT کامل، بزرگی و جهت وزن‌ها مستقل تغییر می‌کنند.</li>
+                    <li>هدف: شبیه‌سازی دقیق رفتار FT بدون سربار محاسباتی.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide31" class="step" data-x="-1500" data-y="1000" data-z="-40000" data-rotate-y="45">
+            <div class="rgb-card">
+                <h2>معماری DoRA: تفکیک Magnitude و Direction</h2>
+                <ul>
+                    <li>ایده Weight Decomposition: تجزیه وزن به W = m V/||V||c.</li>
+                    <li>مولفه m: بردار بزرگی که به طور کامل آموزش می‌بیند (آموزش‌پذیر).</li>
+                    <li>مولفه V: ماتریس جهت که فریز شده و تغییراتش با LoRA اعمال می‌شود.</li>
+                    <li>نوآوری: آزادی عمل بیشتر مدل برای تنظیم مقیاس جدا از جهت.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide32" class="step" data-x="0" data-y="2500" data-z="-42000" data-rotate-x="45">
+            <div class="rgb-card">
+                <h2>نتایج و دستاوردهای DoRA</h2>
+                <ul>
+                    <li>فرمول نهایی: W' = (m₀ + Δm) (W₀ + BA) / ||W₀ + BA||c.</li>
+                    <li>پایداری بالا: عملکرد عالی حتی با Rankهای بسیار پایین.</li>
+                    <li>بدون سربار استنتاج: قابلیت ادغام کامل پارامترها پس از آموزش.</li>
+                    <li>برتری: غلبه بر LoRA در بنچمارک‌های استدلال عقل سلیم.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide33" class="step" data-x="2500" data-y="1500" data-z="-44000" data-rotate-y="90">
+            <div class="rgb-card">
+                <h2>معرفی LoRA+: بهینه‌سازی نرخ یادگیری (2024)</h2>
+                <ul>
+                    <li>چکیده: اثبات ناکارآمدی نرخ یادگیری یکسان برای ماتریس‌های A و B.</li>
+                    <li>چالش: ماتریس B (مقداردهی صفر) نیاز به تغییرات سریع‌تری نسبت به A دارد.</li>
+                    <li>هدف: افزایش سرعت همگرایی و دقت بدون تغییر معماری مدل.</li>
+                    <li>ماهیت: یک دستورالعمل بهینه‌سازی (Recipe) است، نه لایه جدید.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide34" class="step" data-x="1500" data-y="-500" data-z="-46000" data-rotate-x="-90">
+            <div class="rgb-card">
+                <h2>عدم تقارن در LoRA+: نسبت λ</h2>
+                <ul>
+                    <li>تحلیل ریاضی: یادگیری ویژگی کارآمد نیازمند ηB ≫ ηA است.</li>
+                    <li>ایده نسبت ثابت: تعریف ηB = λ ηA که در آن λ بزرگ است (مثلاً ۱۶).</li>
+                    <li>تأثیر: ماتریس خروجی (B) سریع‌تر رشد کرده و ویژگی‌های جدید را شکل می‌دهد.</li>
+                    <li>ماتریس ورودی (A): پایدارتر باقی می‌ماند تا اطلاعات ورودی حفظ شود.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide35" class="step" data-x="0" data-y="-2000" data-z="-48000" data-rotate-y="180">
+            <div class="rgb-card">
+                <h2>پیاده‌سازی و نتایج LoRA+</h2>
+                <ul>
+                    <li>پیاده‌سازی: تنظیم lr متفاوت برای گروه‌های پارامتری در Optimizer.</li>
+                    <li>افزایش سرعت: کاهش زمان آموزش تا ۵۰٪ (۲ برابر سریع‌تر).</li>
+                    <li>دقت بهتر: کاهش Perplexity در مدل‌های LLaMA و Roberta.</li>
+                    <li>نتیجه: ارتقای رایگان عملکرد LoRA تنها با تنظیم دقیق Hyperparameters.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide36" class="step" data-x="0" data-y="0" data-z="-55000" data-scale="5" data-rotate-x="-15">
+            <div class="rgb-card simple-finish">
+                <div class="logo-area dynamic-hue" style="width: 150px; height: 150px;">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="2" fill="none" />
+                        <path d="M30 50 L45 65 L70 35" stroke="currentColor" stroke-width="5" fill="none" />
+                    </svg>
+                </div>
+                <h1 class="dynamic-text" style="font-size: 100px;">با تشکر از توجه شما</h1>
+                <p style="font-size: 35px; margin-top: 20px;">پایان ارائه: تطبیق کارآمد مدل‌های زبانی (PEFT)</p>
+                <div class="sub-divider" style="width: 200px; height: 2px; background: rgba(255,255,255,0.2); margin: 40px auto;"></div>
+                <div class="loading-bar" style="width: 400px; margin-top: 50px;">
+                    <div class="fill dynamic-bg" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="res/js/impress.js"></script>
+    <script src="res/js/scripts.js"></script>
+</body>
+</html>
