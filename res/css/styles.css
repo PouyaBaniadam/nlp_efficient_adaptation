@@ -232,3 +232,13 @@ body { cursor: crosshair; }
 
 @keyframes typing { from { width: 0 } to { width: 100% } }
 @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #00ffd5; } }
+
+.ai-gradient {
+    font-weight: bold;
+    background: linear-gradient(90deg, #4c00ff, #ff3c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.center-col {
+    text-align: center !important;
+}
